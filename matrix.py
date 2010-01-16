@@ -23,39 +23,39 @@ class Matrix:
         m2 = matrix2.matrix
         res = Matrix()
         res.matrix = [[m1[0][0] * m2[0][0] +
-                       m1[0][1] * m2[1][0] +
-                       m1[0][2] * m2[2][0],
+                       m1[1][0] * m2[0][1] +
+                       m1[2][0] * m2[0][2],
                        
-                       m1[1][0] * m2[0][0] +
-                       m1[1][1] * m2[1][0] +
-                       m1[1][2] * m2[2][0],
+                       m1[0][1] * m2[0][0] +
+                       m1[1][1] * m2[0][1] +
+                       m1[2][1] * m2[0][2],
                        
-                       m1[2][0] * m2[0][0] +
-                       m1[2][1] * m2[1][0] +
-                       m1[2][2] * m2[2][0],],
+                       m1[0][2] * m2[0][0] +
+                       m1[1][2] * m2[0][1] +
+                       m1[2][2] * m2[0][2],],
                       
-                       [m1[0][0] * m2[0][1] +
+                       [m1[0][0] * m2[1][0] +
                         m1[0][1] * m2[1][1] +
-                        m1[0][2] * m2[2][1],
+                        m1[0][2] * m2[1][2],
                         
-                        m1[1][0] * m2[0][1] +
+                        m1[0][1] * m2[1][0] +
                         m1[1][1] * m2[1][1] +
-                        m1[1][2] * m2[2][1],
+                        m1[2][1] * m2[1][2],
                         
-                        m1[2][0] * m2[0][1] +
-                        m1[2][1] * m2[1][1] +
-                        m1[2][2] * m2[2][1] ,],
+                        m1[0][2] * m2[1][0] +
+                        m1[1][2] * m2[1][1] +
+                        m1[2][2] * m2[1][2] ,],
                        
-                       [m1[0][0] * m2[0][2] +
-                        m1[0][1] * m2[1][2] +
-                        m1[0][2] * m2[2][2],
+                       [m1[0][0] * m2[2][0] +
+                        m1[1][0] * m2[2][1] +
+                        m1[2][0] * m2[2][2],
 
-                        m1[1][0] * m2[0][2] +
-                        m1[1][1] * m2[1][2] +
-                        m1[1][2] * m2[2][2],
+                        m1[0][1] * m2[2][0] +
+                        m1[1][1] * m2[2][1] +
+                        m1[2][1] * m2[2][2],
                         
-                        m1[2][0] * m2[0][2] +
-                        m1[2][1] * m2[1][2] +
+                        m1[0][2] * m2[2][0] +
+                        m1[1][2] * m2[2][1] +
                         m1[2][2] * m2[2][2],]]
         return res
 
@@ -72,26 +72,26 @@ class Rotation(Matrix):
     def __init__(self, rot):
         Matrix.__init__(self)
         self.matrix[0][0] = cos(rot);
-        self.matrix[1][0] = sin(rot);
+        self.matrix[0][1] = sin(rot);
 
-        self.matrix[0][1] = -sin(rot);
+        self.matrix[1][0] = -sin(rot);
         self.matrix[1][1] = cos(rot);
 
 class Translation(Matrix):
     def __init__(self, trans):
         Matrix.__init__(self)
-        self.matrix[2][0] = trans.x;
-        self.matrix[2][1] = trans.y;
+        self.matrix[0][2] = trans.matrix[0];
+        self.matrix[1][2] = trans.matrix[1];
 
 class Scale(Matrix):
-    def __init__(self, trans):
+    def __init__(self, scale):
         Matrix.__init__(self)
-        self.matrix[0][0] = scale.x;
-        self.matrix[1][1] = scale.y;
+        self.matrix[0][0] = scale.matrix[0];
+        self.matrix[1][1] = scale.matrix[1];
 
 class Vector:
     def __init__(self, x, y):
-        self.matrix = [x, y, 0]
+        self.matrix = [x, y, 1]
     
     def __repr__(self):
         return "[%f %f %f]"%(self.matrix[0],
@@ -108,24 +108,47 @@ class Vector:
         
         res = Vector(0, 0)
         res.matrix = [m[0][0] * v[0] + 
-                      m[1][0] * v[1] +
-                      m[2][0] * v[2],
+                      m[0][1] * v[1] +
+                      m[0][2] * v[2],
                      
-                      m[0][1] * v[0] + 
+                      m[1][0] * v[0] + 
                       m[1][1] * v[1] +
-                      m[2][1] * v[2],
+                      m[1][2] * v[2],
         
-                      m[0][2] * v[0] + 
-                      m[1][2] * v[1] +
+                      m[2][0] * v[0] + 
+                      m[2][1] * v[1] +
                       m[2][2] * v[2]]
         return res
         
 def test():
     print "Test"
-    m1 = Identity()
-    m2 = Rotation(pi / 2)
-    v1 = Vector(2.0 ,2.0)
+    ident = Identity()
+    tra = Translation(Vector(2, 3))
+    rot = Rotation(pi / 2)
+    scl = Scale(Vector(4.0, 5.0))
+
+    print tra
+    print '='
+    print ident * tra
+    print '---'
+
+    print rot
+    print '='
+    print ident * rot
+    print '---'
+
+    print scl
+    print '='
+    print ident * scl
+    print '---'
+
+    v1 = Vector(1, 1)
+    print v1 * tra
+    print '---'
+    print v1 * rot
+    print '---'
+    print v1 * scl
+
+                                           
     
-    print m1 * m2
-    print v1 * m1 * m2
 
