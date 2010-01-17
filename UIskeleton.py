@@ -20,12 +20,35 @@ def norm(p):
     return [p[0] / dist, p[1] / dist]
 def direction(p1, p2):
     return [p2[0] - p1[0], p2[1] - p1[1]]
+def heading(p1, p2):
+    d = direction(p1, p2)
+    
+    if d[0] < 0 and d[1] < 0:
+        return pi + atan(d[0] / -d[1])
+    elif d[0] < 0 and d[1] == 0:
+        return pi / 2
+    elif d[0] < 0 and d[1] > 0:
+        return pi / 2 + atan(d[1] / d[0])
+    
+    elif d[0] == 0 and d[1] < 0:
+        return pi
+    # Don't change anything in this case    
+    # elif d[0] == 0 and d[1] == 0:
+    elif d[0] == 0 and d[1] > 0:
+        return 0
 
+    elif d[0] > 0 and d[1] > 0:
+        return atan(d[0] / -d[1])
+    elif d[0] > 0 and d[1] == 0:
+        return 3 * pi / 2
+    elif d[0] > 0 and d[1] < 0:
+        return 3 * pi / 2 + atan(d[1] / d[0])
+    
 class UIItem:
     def __init__(self):
         self.selected = False
         self.hilighted = False
-        
+
 class UIBone(UIItem):
     def __init__(self, bone):
         UIItem.__init__(self)
@@ -69,40 +92,9 @@ class UIBone(UIItem):
         return (dist(self.center().matrix, [x, y]) <= 5)
 
     def drag(self, x, y, offset):
-        c = self.bone.start.position.matrix
-        d = direction([c[0], c[1]],
-                      [x - offset.matrix[0], -y + offset.matrix[1]])
-        print str(c) + "->\n" + \
-              str( [x - offset.matrix[0], -y + offset.matrix[1]]) + \
-              '\n = ' + str(d)
-        
-        if d[0] < 0 and d[1] < 0:
-            rotation = pi + atan(d[0] / -d[1])
-        elif d[0] < 0 and d[1] == 0:
-            rotation = pi / 2
-        elif d[0] < 0 and d[1] > 0:
-            rotation = pi / 2 + atan(d[1] / d[0])
-
-        elif d[0] == 0 and d[1] < 0:
-            rotation = pi
-        # Don't change anything in this case    
-        #elif d[0] == 0 and d[1] == 0:
-        #    self.bone.rotation = 3 * pi / 2 + atan(d[1] / d[0])
-        elif d[0] == 0 and d[1] > 0:
-            rotation = 0
-
-        elif d[0] > 0 and d[1] > 0:
-            rotation = atan(d[0] / -d[1])
-        elif d[0] > 0 and d[1] == 0:
-            rotation = 3 * pi / 2
-        elif d[0] > 0 and d[1] < 0:
-            rotation = 3 * pi / 2 + atan(d[1] / d[0])
-
-        self.bone.set_absolute_rotation(rotation)
-        
-
-            
-        
+        self.bone.set_absolute_rotation( \
+            heading(self.bone.start.position.matrix,
+                    [x - offset.matrix[0], -y + offset.matrix[1]]))
 
 class UIJoint(UIItem):
     def __init__(self, joint):
@@ -126,12 +118,26 @@ class UIJoint(UIItem):
     def click_in(self, x, y):
         return (dist(self.joint.position.matrix, [x, y]) <= 5)
 
+    def drag(self, x, y, offset):
+        bone = self.joint.bone_in
+        corrected_pos = [x - offset.matrix[0], -y + offset.matrix[1]]
+        bone.length = dist(bone.start.position.matrix, corrected_pos)
+        bone.set_absolute_rotation( \
+            heading(bone.start.position.matrix, corrected_pos))
+
+class UIRoot(UIJoint):
+    def __init__(self, root):
+        UIJoint.__init__(self, root)
+        self.offset = matrix.Vector(0,0)
+
+    def drag(self, x, y, offset):
+        self.offset = matrix.Vector(x, y)
+    
 class UISkeleton:
     def __init__(self, root):
         self.joints = []
         self.bones = []
         self.build_UI_skeleton(root)
-        self.offset = matrix.Vector(0,0)
         self.selected = None
         
     def get_root(self):
@@ -139,25 +145,30 @@ class UISkeleton:
         return self.joints[0]
 
     def set_position(self, new_pos):
-        self.offset = matrix.Vector(new_pos.matrix[0], new_pos.matrix[1])
+        self.get_root().offset = matrix.Vector(new_pos.matrix[0], new_pos.matrix[1])
         
-
-    def build_UI_skeleton(self, root):
+    def __build_UI_skeleton_r(self, root):
         self.joints.append(UIJoint(root))
         for b in root.bones_out:
             self.bones.append(UIBone(b))
-            self.build_UI_skeleton(b.end)
+            self.__build_UI_skeleton_r(b.end)
+
+    def build_UI_skeleton(self, root):
+        self.joints.append(UIRoot(root))
+        for b in root.bones_out:
+            self.bones.append(UIBone(b))
+            self.__build_UI_skeleton_r(b.end)
 
     def draw(self, screen):
         for item in self.joints + self.bones:
-            item.draw(screen, self.offset)
+            item.draw(screen, self.get_root().offset)
 
     def hilight(self, (x, y)):
         for item in self.bones + self.joints:
             item.hilighted = False
         for item in self.bones + self.joints:
-            if item.click_in(x - self.offset.matrix[0],
-                             -y + self.offset.matrix[1]):
+            if item.click_in(x - self.get_root().offset.matrix[0],
+                             -y + self.get_root().offset.matrix[1]):
                 item.hilighted = True
                 return
 
@@ -166,15 +177,15 @@ class UISkeleton:
         for item in self.bones + self.joints:
             item.selected = False
         for item in self.bones + self.joints:
-            if item.click_in(x - self.offset.matrix[0],
-                             -y + self.offset.matrix[1]):
+            if item.click_in(x - self.get_root().offset.matrix[0],
+                             -y + self.get_root().offset.matrix[1]):
                 self.selected = item
                 item.selected = True
                 return
 
     def drag(self, (x, y)):
         if self.selected:
-            self.selected.drag(x, y, self.offset)
+            self.selected.drag(x, y, self.get_root().offset)
         
 def test_skele():
     root = bones.Root()
