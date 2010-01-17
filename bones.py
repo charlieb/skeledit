@@ -1,34 +1,37 @@
-from matrix import Identity, Rotation, Translation, Scale, Vector
 from math import pi
 
+import matrix
+
+def reload_bones_imports():
+    reload(matrix)
+    
 class Joint:
+    origin = matrix.Vector(0, 0)
     # Joints hold position and transformation relative to the root
     # This is considered ABSOLUTE
     def __init__(self):
         self.bones = []
-        self.transform = Identity()
-        self.position = Vector(0, 0)        
+        self.transform = matrix.Identity()
+        self.position = matrix.Vector(0, 0)        
 
     def add_bone(self, bone):
         self.bones.append(bone)
 
     def __repr__(self):
-        return "Joint:\n" + str(self.transform)
+        return "Joint:\n\tPos: " + str(self.position) + \
+            "\n\tTransform:\n" + str(self.transform) + \
+            "\n----------------------------"
+
+    def calc_position(self):
+        # You probably want to call calc_transform first!
+        self.position = self.origin * self.transform
 
     def calc_skeleton(self):
+        self.calc_position()
         for bone in self.bones:
             bone.calc_transform()
-            bone.calc_end_position()
-            bone.joint_to.transform = self.transform * bone.transform
-            bone.joint_to.calc_skeleton()
-
-class Root(Joint):
-    def __init__(self):
-        Joint.__init__(self)
-        self.origin = Vector(0, 0)
-
-    def __repr__(self):
-        return "Root:\n" + str(self.position)        
+            bone.end.transform = bone.transform * self.transform
+            bone.end.calc_skeleton()
 
 class Bone:
     # Bones hold transformation information from start to end
@@ -39,7 +42,7 @@ class Bone:
         self.end = Joint()
         self.rotation = 0
         self.length = 1
-        self.transform = Identity()
+        self.transform = matrix.Identity()
         
     def __repr__(self):
         return "Bone:\nlength: %f\nrotation: %f\n"%(self.length, 
@@ -47,30 +50,28 @@ class Bone:
                                                     str(self.transform)
 
     def calc_transform(self):
-        self.transform = Rotation(self.rotation) * \
-            Translation(Vector(0, self.length))
-        print "calc_transform"
-        print self.transform
-
-    def calc_end_position(self):
-        # You probably want to call calc_transform first!
-        self.end.position = self.start.position * self.transform
+        self.transform = \
+                       matrix.Translation(matrix.Vector(self.length, 0)) * \
+                       matrix.Rotation(self.rotation)
 
 def print_skeleton(root):
     print root
     for bone in root.bones:
         print bone
-        print_skeleton(bone.joint_to)
-
-
+        print_skeleton(bone.end)
 
 def test():
-    root = Root()
+    root = Joint()
     b1 = Bone(root)
-    b1.length = 5
-    b2 = Bone(b1.joint_to)
-    root.calc_skeleton()
+    b1.length = 50
+    b1.rotation = pi / 2
+    
+    b2 = Bone(b1.end)
+    b2.length = 100
+    b2.rotation = 0
 
+    print_skeleton(root)
+    root.calc_skeleton()
     print "---"
     print_skeleton(root)
 
