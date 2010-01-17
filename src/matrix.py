@@ -1,4 +1,4 @@
-from math import sin, cos, pi
+from math import sin, cos, pi, pow, sqrt, atan
 
 class Matrix:
     def __init__(self):
@@ -120,24 +120,76 @@ class Vector:
         return Vector(self.matrix[0] + v2.matrix[0], 
                       self.matrix[1] + v2.matrix[1])
 
-    def __mul__(self, matrix):
-        v = self.matrix
-        m = matrix.matrix
-        
-        res = Vector(0, 0)
-        res.matrix = [m[0][0] * v[0] + 
-                      m[0][1] * v[1] +
-                      m[0][2] * v[2],
-                     
-                      m[1][0] * v[0] + 
-                      m[1][1] * v[1] +
-                      m[1][2] * v[2],
-        
-                      m[2][0] * v[0] + 
-                      m[2][1] * v[1] +
-                      m[2][2] * v[2]]
-        return res
+    def __sub__(self, v2):
+        return Vector(self.matrix[0] - v2.matrix[0], 
+                      self.matrix[1] - v2.matrix[1])
 
+    def __mul__(self, multiplier):
+        v = self.matrix
+
+        if isinstance(multiplier, Matrix):
+            m = multiplier.matrix
+        
+            res = Vector(0, 0)
+            res.matrix = [m[0][0] * v[0] + 
+                          m[0][1] * v[1] +
+                          m[0][2] * v[2],
+                          
+                          m[1][0] * v[0] + 
+                          m[1][1] * v[1] +
+                          m[1][2] * v[2],
+                          
+                          m[2][0] * v[0] + 
+                          m[2][1] * v[1] +
+                          m[2][2] * v[2]]
+            
+        elif isinstance(multiplier, (int, float)):
+            res = Vector(self.matrix[0] * multiplier,
+                         self.matrix[1] * multiplier)
+        return res
+    
+    def __getitem__(self, item):
+        return self.matrix[item]
+
+    def magnitude_squared(self):
+        return pow(self.matrix[0], 2) + pow(self.matrix[1], 2)
+
+    def magnitude(self):
+        return sqrt(self.magnitude_squared())
+
+    def normalize(self):
+        return self * (1.0 / self.magnitude())
+
+    def distance(self, v2):
+        if not isinstance(v2, Vector):
+            raise TypeError(str(v2) + "is not a Vector")
+        return (v2 - self).magnitude()
+
+    def heading(self, v2):
+        d = v2 - self
+
+        if d[0] < 0 and d[1] < 0:
+            return pi + atan(d[0] / -d[1])
+        elif d[0] < 0 and d[1] == 0:
+            return pi / 2
+        elif d[0] < 0 and d[1] > 0:
+            return pi / 2 + atan(d[1] / d[0])
+        
+        elif d[0] == 0 and d[1] < 0:
+            return pi
+        # Don't change anything in this case    
+        # elif d[0] == 0 and d[1] == 0:
+        elif d[0] == 0 and d[1] > 0:
+            return 0
+        
+        elif d[0] > 0 and d[1] > 0:
+            return atan(d[0] / -d[1])
+        elif d[0] > 0 and d[1] == 0:
+            return 3 * pi / 2
+        elif d[0] > 0 and d[1] < 0:
+            return 3 * pi / 2 + atan(d[1] / d[0])
+
+        
 def t2():
     m1 = Matrix()
     m1.matrix = [[0.5, -0.5, 0.0],
