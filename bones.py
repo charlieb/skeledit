@@ -9,13 +9,11 @@ class Joint:
     origin = matrix.Vector(0, 0)
     # Joints hold position and transformation relative to the root
     # This is considered ABSOLUTE
-    def __init__(self):
-        self.bones = []
+    def __init__(self, bone_in):
+        self.bone_in = bone_in
+        self.bones_out = []
         self.transform = matrix.Identity()
         self.position = matrix.Vector(0, 0)        
-
-    def add_bone(self, bone):
-        self.bones.append(bone)
 
     def __repr__(self):
         return "Joint:\n\tPos: " + str(self.position) + \
@@ -28,18 +26,23 @@ class Joint:
 
     def calc_skeleton(self):
         self.calc_position()
-        for bone in self.bones:
+        for bone in self.bones_out:
             bone.calc_transform()
             bone.end.transform = bone.transform * self.transform
             bone.end.calc_skeleton()
 
+class Root(Joint):
+    def __init__(self):
+        Joint.__init__(self, None)
+        
 class Bone:
     # Bones hold transformation information from start to end
     # This is considered RELATIVE
-    def __init__(self, joint_from):
-        joint_from.add_bone(self)
-        self.start = joint_from
-        self.end = Joint()
+    def __init__(self, start_joint):
+        self.start = start_joint
+        self.start.bones_out.append(self)
+        self.end = Joint(self)
+        self.end.bone_in = self
         self.rotation = 0
         self.length = 1
         self.transform = matrix.Identity()
@@ -48,20 +51,27 @@ class Bone:
         return "Bone:\nlength: %f\nrotation: %f\n"%(self.length, 
                                                     self.rotation) + \
                                                     str(self.transform)
-
     def calc_transform(self):
         self.transform = \
-                       matrix.Translation(matrix.Vector(self.length, 0)) * \
+                       matrix.Translation(matrix.Vector(0, self.length)) * \
                        matrix.Rotation(self.rotation)
+
+    def set_absolute_rotation(self, rot):
+        """Sets rotation in the origin/root reference frame"""
+        self.rotation = rot
+        bone = self.start.bone_in
+        while bone:
+            self.rotation -= bone.rotation
+            bone = bone.start.bone_in
 
 def print_skeleton(root):
     print root
-    for bone in root.bones:
+    for bone in root.bones_out:
         print bone
         print_skeleton(bone.end)
 
 def test():
-    root = Joint()
+    root = Root()
     b1 = Bone(root)
     b1.length = 50
     b1.rotation = pi / 2

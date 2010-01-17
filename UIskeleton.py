@@ -1,6 +1,6 @@
 import pygame
 from pygame.locals import *
-from math import pi
+from math import pi, pow, sqrt, atan
 
 import matrix
 import bones
@@ -12,34 +12,52 @@ def reload_UI_skeleton_imports():
 reload_UI_skeleton_imports()
 
 def dist(p1, p2):
-    return math.sqrt(math.pow(p1[0] - p2[0], 2) + math.pow(p1[1] - p2[1], 2))
+    return sqrt(pow(p1[0] - p2[0], 2) + pow(p1[1] - p2[1], 2))
 def mag(v):
-    return math.sqrt(math.pow(v[0], 2) + math.pow(v[1], 2))
+    return sqrt(pow(v[0], 2) + pow(v[1], 2))
 def norm(p):
     dist = mag(p)
     return [p[0] / dist, p[1] / dist]
-def dir(p1, p2):
-    return norm([p2[0] - p1[0], p2[1] - p1[1]])
+def direction(p1, p2):
+    return [p2[0] - p1[0], p2[1] - p1[1]]
 
-class UIBone:
+class UIItem:
+    def __init__(self):
+        self.selected = False
+        self.hilighted = False
+        
+class UIBone(UIItem):
     def __init__(self, bone):
+        UIItem.__init__(self)
         self.bone = bone
 
     def draw(self, screen, offset):
-        pygame.draw.line(screen, (150,150,150), 
+        bone_colour = (150,150,150)
+        selector_colour = (0, 0, 255)
+        selector_size = 3
+        selector_width = 0
+        if self.hilighted:
+            bone_colour = (100,200,100)
+            selector_size = 5
+            selector_width = 1
+        if self.selected:
+            bone_colour = (100,200,100)
+            selector_colour = (0, 255, 0)
+            
+        pygame.draw.line(screen, bone_colour, 
                          [int(offset.matrix[0] + \
                                   self.bone.start.position.matrix[0]), 
-                          int(offset.matrix[1] + \
+                          int(offset.matrix[1] - \
                                   self.bone.start.position.matrix[1])],
                          [int(offset.matrix[0] + 
                               self.bone.end.position.matrix[0]), 
-                          int(offset.matrix[1] + 
+                          int(offset.matrix[1] - 
                               self.bone.end.position.matrix[1])])
         center = self.center()
-        pygame.draw.circle(screen, (150, 150, 150),
+        pygame.draw.circle(screen, selector_colour,
                            [int(offset.matrix[0] + center.matrix[0]), 
-                            int(offset.matrix[1] + center.matrix[1])],
-                           2, 1)
+                            int(offset.matrix[1] - center.matrix[1])],
+                           selector_size, selector_width)
         
     def center(self):
         return matrix.Vector((self.bone.end.position.matrix[0] +
@@ -47,20 +65,66 @@ class UIBone:
                              (self.bone.end.position.matrix[1] + 
                               self.bone.start.position.matrix[1]) / 2)
     
-    def click_in(self, pt):
-        return (dist(self.center(), pt) <= 5)
+    def click_in(self, x, y):
+        return (dist(self.center().matrix, [x, y]) <= 5)
 
-class UIJoint:
+    def drag(self, x, y, offset):
+        c = self.bone.start.position.matrix
+        d = direction([c[0], c[1]],
+                      [x - offset.matrix[0], -y + offset.matrix[1]])
+        print str(c) + "->\n" + \
+              str( [x - offset.matrix[0], -y + offset.matrix[1]]) + \
+              '\n = ' + str(d)
+        
+        if d[0] < 0 and d[1] < 0:
+            rotation = pi + atan(d[0] / -d[1])
+        elif d[0] < 0 and d[1] == 0:
+            rotation = pi / 2
+        elif d[0] < 0 and d[1] > 0:
+            rotation = pi / 2 + atan(d[1] / d[0])
+
+        elif d[0] == 0 and d[1] < 0:
+            rotation = pi
+        # Don't change anything in this case    
+        #elif d[0] == 0 and d[1] == 0:
+        #    self.bone.rotation = 3 * pi / 2 + atan(d[1] / d[0])
+        elif d[0] == 0 and d[1] > 0:
+            rotation = 0
+
+        elif d[0] > 0 and d[1] > 0:
+            rotation = atan(d[0] / -d[1])
+        elif d[0] > 0 and d[1] == 0:
+            rotation = 3 * pi / 2
+        elif d[0] > 0 and d[1] < 0:
+            rotation = 3 * pi / 2 + atan(d[1] / d[0])
+
+        self.bone.set_absolute_rotation(rotation)
+        
+
+            
+        
+
+class UIJoint(UIItem):
     def __init__(self, joint):
+        UIItem.__init__(self)
         self.joint = joint
 
     def draw(self, screen, offset):
-        pygame.draw.circle(screen, (0, 0, 255),
+        colour = (175, 175, 175)
+        size = 2
+        width = 0
+        if self.hilighted:
+            size = 5
+            width = 1
+        if self.selected:
+            colour = (0, 255, 0)
+            size = 3
+        pygame.draw.circle(screen, colour,
                            [int(offset.matrix[0] + self.joint.position.matrix[0]), 
-                            int(offset.matrix[1] + self.joint.position.matrix[1])],
-                           5, 1)
-    def click_in(self, pt):
-        return (dist(joint.position.matrix, pt) <= 5)
+                            int(offset.matrix[1] - self.joint.position.matrix[1])],
+                           size, width)
+    def click_in(self, x, y):
+        return (dist(self.joint.position.matrix, [x, y]) <= 5)
 
 class UISkeleton:
     def __init__(self, root):
@@ -68,7 +132,8 @@ class UISkeleton:
         self.bones = []
         self.build_UI_skeleton(root)
         self.offset = matrix.Vector(0,0)
-
+        self.selected = None
+        
     def get_root(self):
         # The first joint is always the root
         return self.joints[0]
@@ -79,19 +144,43 @@ class UISkeleton:
 
     def build_UI_skeleton(self, root):
         self.joints.append(UIJoint(root))
-        for b in root.bones:
+        for b in root.bones_out:
             self.bones.append(UIBone(b))
             self.build_UI_skeleton(b.end)
 
     def draw(self, screen):
         for item in self.joints + self.bones:
             item.draw(screen, self.offset)
-    
+
+    def hilight(self, (x, y)):
+        for item in self.bones + self.joints:
+            item.hilighted = False
+        for item in self.bones + self.joints:
+            if item.click_in(x - self.offset.matrix[0],
+                             -y + self.offset.matrix[1]):
+                item.hilighted = True
+                return
+
+    def select(self, (x, y)):
+        self.selected = None
+        for item in self.bones + self.joints:
+            item.selected = False
+        for item in self.bones + self.joints:
+            if item.click_in(x - self.offset.matrix[0],
+                             -y + self.offset.matrix[1]):
+                self.selected = item
+                item.selected = True
+                return
+
+    def drag(self, (x, y)):
+        if self.selected:
+            self.selected.drag(x, y, self.offset)
+        
 def test_skele():
-    root = bones.Joint()
+    root = bones.Root()
     b1 = bones.Bone(root)
     b1.length = 50
-    b1.rotation = pi / 2
+    b1.rotation = 0
 
     b2 = bones.Bone(b1.end)
     b2.length = 50
@@ -114,10 +203,8 @@ def main():
 
     UI = UISkeleton(test_skele())
     UI.set_position(matrix.Vector(320, 240))
-
-    for joint in UI.joints:
-        print joint.joint
-
+    
+    mouse_down = False
     while True:
         pygame.event.pump()
         event = pygame.event.poll()
@@ -125,12 +212,26 @@ def main():
             if event.key == K_q:
                 pygame.quit()
                 return True
+        elif event.type == MOUSEMOTION:
+            if mouse_down:
+                UI.drag(pygame.mouse.get_pos())
+            else:
+                UI.hilight(pygame.mouse.get_pos())
+        elif event.type == MOUSEBUTTONDOWN:
+            UI.select(pygame.mouse.get_pos())
+            mouse_down = True
+        elif event.type == MOUSEBUTTONUP:
+            mouse_down = False
 
-        UI.bones[0].bone.rotation += pi / 50
+
+            
+        #UI.bones[0].bone.rotation += pi / 50
+        #UI.bones[2].bone.rotation += pi / 100
+                
         UI.get_root().joint.calc_skeleton()
 
-        bones.print_skeleton(UI.get_root().joint)
-        print "==============================="
+        #bones.print_skeleton(UI.get_root().joint)
+        #print "==============================="
         UI.draw(screen)
         pygame.display.flip()
         screen.fill((0,0,0))
