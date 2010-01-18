@@ -89,8 +89,8 @@ class UIRoot(UIJoint):
         UIJoint.__init__(self, root)
         self.offset = matrix.Vector(0,0)
 
-    def drag(self, x, y, offset):
-        self.offset = matrix.Vector(x, y)
+    def drag(self, p):
+        self.offset = matrix.Vector(self.offset[0] + p[0], self.offset[1] - p[1])
     
 class UISkeleton:
     def __init__(self, root):
