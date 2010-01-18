@@ -64,6 +64,13 @@ class Bone:
             self.rotation -= bone.rotation
             bone = bone.start.bone_in
 
+    def delete(self):
+        self.end.bone_in = None
+        for bone in self.end.bones_out:
+            bone.delete()
+        self.end.bones_out = []
+        self.start.bones_out.remove(self)
+        
 def print_skeleton(root):
     print root
     for bone in root.bones_out:

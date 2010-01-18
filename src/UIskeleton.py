@@ -113,6 +113,8 @@ class UISkeleton:
             self.__build_UI_skeleton_r(b.end)
 
     def build_UI_skeleton(self, root):
+        self.joints = []
+        self.bones = []
         self.joints.append(UIRoot(root))
         for b in root.bones_out:
             self.bones.append(UIBone(b))
@@ -120,14 +122,27 @@ class UISkeleton:
 
     def add_bone(self):
         if self.selected:
-            if isinstance(self.selected, UIBone):
+            if not isinstance(self.selected, UIJoint):
                 print "Please select a Joint"
                 return
             bone = bones.Bone(self.selected.joint)
             bone.length = 10
             self.bones.append(UIBone(bone))
             self.joints.append(UIJoint(bone.end))
-
+                    
+    def delete_bone(self):
+        if self.selected:
+            if not isinstance(self.selected, UIBone):
+                print "Please select a Bone"
+                return
+            self.selected.bone.delete()
+            self.selected = None
+            # Cache the offset so it doesn't get wiped out by the rebuild
+            offset = self.get_root().offset
+            self.build_UI_skeleton(self.get_root().joint)
+            self.set_position(offset)
+            
+            
     def draw(self, screen):
         for item in self.joints + self.bones:
             item.draw(screen, self.get_root().offset)
@@ -180,7 +195,8 @@ def main():
     UI.set_position(matrix.Vector(320, 240))
 
     print 'Info:'
-    print '\nAdd a bone: select a joint and press n'
+    print '\nAdd a bone: select a joint and press (n)ew'
+    print '\nDelete a bone: select a bone and press (d)elete'
 
     mouse_down = False
     while True:
@@ -192,6 +208,8 @@ def main():
                 return True
             elif event.key == K_n:
                 UI.add_bone()
+            elif event.key == K_d:
+                UI.delete_bone()
                 
         elif event.type == MOUSEMOTION:
             p = pygame.mouse.get_pos()
@@ -205,16 +223,9 @@ def main():
             mouse_down = True
         elif event.type == MOUSEBUTTONUP:
             mouse_down = False
-
-
-            
-        #UI.bones[0].bone.rotation += pi / 50
-        #UI.bones[2].bone.rotation += pi / 100
-                
+               
         UI.get_root().joint.calc_skeleton()
-
-        #bones.print_skeleton(UI.get_root().joint)
-        #print "==============================="
+        
         UI.draw(screen)
         pygame.display.flip()
         screen.fill((0,0,0))

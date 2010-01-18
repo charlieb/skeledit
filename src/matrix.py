@@ -189,21 +189,6 @@ class Vector:
         elif d[0] > 0 and d[1] < 0:
             return 3 * pi / 2 + atan(d[1] / d[0])
 
-        
-def t2():
-    m1 = Matrix()
-    m1.matrix = [[0.5, -0.5, 0.0],
-                 [0.5, 0.5, 0.0],
-                 [0.0, 0.0, 1.0]]
-    m2 = Matrix()
-    m2.matrix = [[2.0, 0.0, 0.0],
-                 [0.0, 4.0, 0.0],
-                 [0.0, 0.0, 1.0]]
-
-    print m1 * m2
-    print
-    print m2 * m1
-
 def test_case(name, want, got):
     print "%s: %s"%(name, ("Pass" if want == got else "Fail"))
     if want != got:
