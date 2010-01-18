@@ -118,6 +118,16 @@ class UISkeleton:
             self.bones.append(UIBone(b))
             self.__build_UI_skeleton_r(b.end)
 
+    def add_bone(self):
+        if self.selected:
+            if isinstance(self.selected, UIBone):
+                print "Please select a Joint"
+                return
+            bone = bones.Bone(self.selected.joint)
+            bone.length = 10
+            self.bones.append(UIBone(bone))
+            self.joints.append(UIJoint(bone.end))
+
     def draw(self, screen):
         for item in self.joints + self.bones:
             item.draw(screen, self.get_root().offset)
@@ -159,9 +169,6 @@ def test_skele():
     b3.rotation = -pi / 4
 
     root.calc_skeleton()
-
-    bones.print_skeleton(root)
-    print "-----"
     return root
   
 def main():
@@ -171,7 +178,10 @@ def main():
 
     UI = UISkeleton(test_skele())
     UI.set_position(matrix.Vector(320, 240))
-    
+
+    print 'Info:'
+    print '\nAdd a bone: select a joint and press n'
+
     mouse_down = False
     while True:
         pygame.event.pump()
@@ -180,6 +190,9 @@ def main():
             if event.key == K_q:
                 pygame.quit()
                 return True
+            elif event.key == K_n:
+                UI.add_bone()
+                
         elif event.type == MOUSEMOTION:
             p = pygame.mouse.get_pos()
             if mouse_down:
