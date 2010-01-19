@@ -1,0 +1,55 @@
+* Requirements
+** Images
+*** Load Dialog to show thumbnail previews
+*** Attach to UIBone at the distal end (as opposed to proximal)
+*** All transfomations are relative to the distal end of UIBone
+*** Will support the following transformations
+    - Scale
+    - Rotate
+    - Translate
+    - Mirror
+** Menus
+*** Joint menu
+**** Add bone
+*** Bone menu
+**** Attach image
+**** Delete
+*** Background/Main menu
+**** Reset/New
+**** Recenter display
+**** Load
+**** Save
+**** Exit
+** Tween Control
+*** Header: > || / |< / << / >> .. < / >
+**** Play/Pause
+**** Rewind
+**** Next Tween
+**** Prev Tween
+**** New tween
+**** Increase No frames
+**** Decrease No frames
+*** Tween Markers
+*** Will be dragable
+*** Possible to create groups of bones that will be tweened seperately
+*** Menu
+**** Delete
+**** Save
+** Geometry
+*** Vector
+**** TODO inner product
+**** DONE normalize
+**** DONE heading
+**** DONE length + length_squared
+**** DONE Make it implement __getitem__
+**** DONE multiply by scaler
+*** Matrix
+**** TODO Make it implement __getitem__
+**** TODO transpose
+**** TODO inverse
+* Testing Checklist
+  1. Rotate Bone
+  2. Move Joint
+  3. Move Root
+  4. Delete non-end Bone
+  5. Add Bone to Joint
