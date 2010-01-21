@@ -110,7 +110,7 @@ class UIRoot(UIJoint):
 
 class UIItemManager:
     def __init__(self):
-        self.sub_items = []
+        self.items = []
         self.position = matrix.Vector(0, 0)
 
     def draw(self, screen):
@@ -123,7 +123,8 @@ class UIItemManager:
         for item in self.items:
             if item.mouse_over(p):
                 item.hilighted = True
-                return
+                return True
+        return False
 
     def select(self, p):
         self.selected = None
@@ -133,7 +134,8 @@ class UIItemManager:
             if item.mouse_over(p):
                 self.selected = item
                 item.selected = True
-                return
+                return True
+        return False
 
     def drag(self, p):
         if self.selected:
@@ -187,32 +189,72 @@ class UISkeleton(UIItemManager):
 
 
 class UIButton(UIItem):
-    def __init__(self, image, position):
-        self.image = image
+    def __init__(self, manager, base_image, hilight_image, position):
+        UIItem.__init__(self, manager)
+        self.base_image = base_image
+        self.hilight_image = hilight_image
         self.position = position
 
     def draw(self, screen):
-        screen.blit(self.image, self.position)
+        pos = self.position + self.manager.position
+        if self.hilighted:
+            screen.blit(self.hilight_image, pos.to_coord_tuple())
+        else:
+            screen.blit(self.base_image, pos.to_coord_tuple())
 
     def mouse_over(self, p):
-        return p[0] > position[0] and \
-               p[0] < position[0] + self.image.get_width() and  \
-               p[1] > position[1] and \
-               p[1] < position[1] + self.image.get_height()
+        pos = self.position + self.manager.position
+        pos_plus_size = pos + self.manager.item_size
+        return p[0] > pos[0] and \
+               p[0] < pos_plus_size[0] and \
+               p[1] > pos[1] and \
+               p[1] < pos_plus_size[1]
 
-class UIMenu(UIItem):
-    def __init__(self, position):
-        self.image = image
-        self.position = position
-        self.buttons = []
+class UIMenu(UIItemManager):
+    def __init__(self):
+        UIItemManager.__init__(self)
+        self.position = matrix.Vector(0,0)
+        self.font = pygame.font.Font(None, 14)
+        self.item_size = matrix.Vector(0, 0)
 
-    def hilight(self, p):
-        for item in self.bones + self.joints:
-            item.hilighted = False
-        for item in self.bones + self.joints:
-            if item.mouse_over(correct_pos(p, self.get_root().offset)):
-                item.hilighted = True
-                return          
+    def add_item(self, text, bg_filename = None, bg_hilight_filename = None):
+        # load the hilighted and normal backgrounds
+        if bg_filename:
+            bg = pygame.image.load(bg_filename)
+        else:
+            bg = pygame.Surface(self.item_size.to_coord_tuple())
+            
+        if bg_hilight_filename:
+            bg_hl = pygame.image.load(bg_hilight_filename)
+        else:
+            bg_hl = pygame.Surface(self.item_size.to_coord_tuple())
+
+        # Render the text to a foreground surface
+        fg = self.font.render(text, True, (150, 150, 150))
+        fg_hl = self.font.render(text, True, (0, 0, 255))
+        # Blit the text onto the background
+        bg.blit(fg, (0,0))
+        bg_hl.blit(fg_hl, (0,0))
+        # Calculate the position of the new item 
+        self.items.append(
+            UIButton(self, bg, bg_hl, 
+                     matrix.Vector(0,
+                                   len(self.items) * self.item_size[1])))
+    
+
+class UIMainMenu(UIMenu):
+    def __init__(self):
+        UIMenu.__init__(self)
+        names = ["New", "Recenter", "Save", "Load", "Exit"]
+        for name in names:
+            size = self.font.size(name)
+            self.item_size = \
+                           matrix.Vector(size[0] if size[0] > self.item_size[0]\
+                                         else self.item_size[0], \
+                                         size[1] if size[1] > self.item_size[1]\
+                                         else self.item_size[1])
+        for name in names:
+            self.add_item(name)
 
 def test_skele():
     root = bones.Root()
@@ -233,11 +275,15 @@ def test_skele():
   
 def main():
     pygame.init()
+    pygame.font.init()
     size = width, height = 640, 480
     screen = pygame.display.set_mode(size)
 
     UI = UISkeleton(test_skele())
     UI.position = matrix.Vector(320, 240)
+
+    menu = False
+    main_menu = UIMainMenu()
 
     print 'Info:'
     print '\nAdd a bone: select a joint and press (n)ew'
@@ -257,20 +303,29 @@ def main():
                 UI.delete_bone()
                 
         elif event.type == MOUSEMOTION:
+            # event.pos lags horribly so get the mouse pos directly
             p = pygame.mouse.get_pos()
-            if mouse_down:
+            # Left mouse button            
+            if event.buttons[0]:
                 UI.drag(matrix.Vector(p[0], p[1]))
+            elif menu and event.buttons[2]:
+                menu.hilight(matrix.Vector(p[0], p[1]))
             else:
                 UI.hilight(matrix.Vector(p[0], p[1]))
         elif event.type == MOUSEBUTTONDOWN:
             p = pygame.mouse.get_pos()
-            UI.select(matrix.Vector(p[0], p[1]))
-            mouse_down = True
+            if event.button == 1: # LMB
+                UI.select(matrix.Vector(p[0], p[1]))
+            elif event.button == 3: # RMB
+                main_menu.position = matrix.Vector(p[0], p[1])
+                menu = main_menu
         elif event.type == MOUSEBUTTONUP:
-            mouse_down = False
+            menu = False
                
         UI.get_root().joint.calc_skeleton()
         
         UI.draw(screen)
+        if menu: menu.draw(screen)
+        
         pygame.display.flip()
         screen.fill((0,0,0))

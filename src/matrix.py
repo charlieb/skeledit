@@ -151,6 +151,9 @@ class Vector:
     def __getitem__(self, item):
         return self.matrix[item]
 
+    def to_coord_tuple(self):
+        return (self.matrix[0], self.matrix[1])
+
     def magnitude_squared(self):
         return pow(self.matrix[0], 2) + pow(self.matrix[1], 2)
 
