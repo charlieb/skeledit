@@ -53,3 +53,6 @@
   3. Move Root
   4. Delete non-end Bone
   5. Add Bone to Joint
+  6. Main menu new
+  7. Main menu recenter
+  8. Main menu exit

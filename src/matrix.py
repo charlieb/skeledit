@@ -151,6 +151,9 @@ class Vector:
     def __getitem__(self, item):
         return self.matrix[item]
 
+    def __setitem__(self, item, value):
+        self.matrix[item] = value
+
     def to_coord_tuple(self):
         return (self.matrix[0], self.matrix[1])
 
