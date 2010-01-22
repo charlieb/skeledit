@@ -1,4 +1,5 @@
 import pygame
+from copy import copy
 from math import pi
 
 import matrix
@@ -103,7 +104,8 @@ class UISkeleton(UIItems.UIItemManager):
         return self.items[0]
 
     def reset(self):
-        for bone in self.get_root().joint.bones_out:
+        bones = copy(self.get_root().joint.bones_out)
+        for bone in bones:
             bone.delete()        
         self.build_UI_skeleton(bones.Root())
         
@@ -122,21 +124,26 @@ class UISkeleton(UIItems.UIItemManager):
 
     def add_bone(self):
         if self.selected:
-            if not isinstance(self.selected, UIJoint):
-                print "Please select a Joint"
-                return
-            bone = bones.Bone(self.selected.joint)
+            if isinstance(self.selected, UIJoint):
+                joint = self.selected.joint
+            elif isinstance(self.selected, UIBone):
+                joint = self.selected.bone.end
+            bone = bones.Bone(joint)
             bone.length = 50
             self.items += [UIBone(self, bone), UIJoint(self, bone.end)]
+            self.build_UI_skeleton(self.get_root().joint)
                     
-    def delete_bone(self):
+    def delete_bones(self):
         if self.selected:
-            if not isinstance(self.selected, UIBone):
-                print "Please select a Bone"
-                return
-            self.selected.bone.delete()
+            if isinstance(self.selected, UIBone):
+                self.selected.bone.delete()
+            elif isinstance(self.selected, UIJoint):
+                bones = copy(self.selected.joint.bones_out)
+                for bone in bones:
+                    print bone
+                    bone.delete()
+
             self.selected = None
-            # Cache the offset so it doesn't get wiped out by the rebuild
             self.build_UI_skeleton(self.get_root().joint)
             
     def drag(self, p):
