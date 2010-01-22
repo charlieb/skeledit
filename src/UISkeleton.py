@@ -22,6 +22,7 @@ class UIBone(UIGeometryItem):
     def __init__(self, manager, bone):
         UIGeometryItem.__init__(self, manager)
         self.bone = bone
+        self.image = None
 
     def draw(self, screen):
         bone_colour = (150,150,150)
@@ -39,6 +40,18 @@ class UIBone(UIGeometryItem):
         start = self.to_screen_pos(self.bone.start.position)
         end = self.to_screen_pos(self.bone.end.position)
 
+        # Draw the image first
+        if self.image:
+            rot = self.bone.end.total_rotation() * (180.0 / pi)
+            rotated_image = pygame.transform.rotate(self.image, rot)
+            size = rotated_image.get_size()
+            trans = matrix.Vector(-size[0] / 2, size[1] / 2) + \
+                    self.bone.end.position
+            trans = self.to_screen_pos(trans)
+
+            screen.blit(rotated_image, [int(trans[0]), int(trans[1])])
+
+
         pygame.draw.line(screen, bone_colour, 
                          [int(start[0]), int(start[1])],
                          [int(end[0]), int(end[1])])
@@ -46,6 +59,7 @@ class UIBone(UIGeometryItem):
         pygame.draw.circle(screen, selector_colour,
                            [int(center[0]), int(center[1])],
                            selector_size, selector_width)
+
         
     def center(self):
         return (self.bone.start.position + self.bone.end.position) * 0.5
@@ -56,6 +70,9 @@ class UIBone(UIGeometryItem):
     def drag(self, p):
         self.bone.set_absolute_rotation(\
             self.bone.start.position.heading(self.from_screen_pos(p)))
+
+    def set_image(self, img_file):
+        self.image = pygame.image.load(img_file, img_file.name)
 
 class UIJoint(UIGeometryItem):
     def __init__(self, manager, joint):
@@ -104,8 +121,8 @@ class UISkeleton(UIItems.UIItemManager):
         return self.items[0]
 
     def reset(self):
-        bones = copy(self.get_root().joint.bones_out)
-        for bone in bones:
+        root_bones = copy(self.get_root().joint.bones_out)
+        for bone in root_bones:
             bone.delete()        
         self.build_UI_skeleton(bones.Root())
         

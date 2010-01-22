@@ -1,4 +1,4 @@
-from math import sin, cos, pi, pow, sqrt, atan
+from math import sin, cos, pi, pow, sqrt, atan, acos, asin
 
 class Matrix:
     def __init__(self):
@@ -194,6 +194,15 @@ class Vector:
             return 3 * pi / 2
         elif d[0] > 0 and d[1] < 0:
             return 3 * pi / 2 + atan(d[1] / d[0])
+
+def extract_rot_trans(matrix):
+    m = matrix.matrix
+    t = Translation(Vector(m[0][2], m[1][2]))
+    print m
+    rot = [acos(m[0][0]), -asin(m[0][1]), asin(m[1][0]), acos(m[1][1])]
+    print rot
+    print t
+    
 
 def test_case(name, want, got):
     print "%s: %s"%(name, ("Pass" if want == got else "Fail"))

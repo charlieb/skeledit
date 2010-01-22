@@ -31,6 +31,12 @@ class Joint:
             bone.end.transform = bone.transform * self.transform
             bone.end.calc_skeleton()
 
+    def total_rotation(self):
+        if self.bone_in:
+            return self.bone_in.rotation + self.bone_in.start.total_rotation()
+        else:
+            return 0
+        
 class Root(Joint):
     def __init__(self):
         Joint.__init__(self, None)

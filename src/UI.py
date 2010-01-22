@@ -1,6 +1,9 @@
 import pygame
 from pygame.locals import *
 
+from Tkinter import Tk
+from tkFileDialog import askopenfile
+
 import matrix
 import UIItems
 import UISkeleton
@@ -61,7 +64,14 @@ class UI:
             self.skeleton.delete_bones()
 
         def Attach_Image():
-            pass
+            # Hide the stupid Tk root window!
+            root = Tk()
+            root.withdraw()
+            img_file = askopenfile(filetypes=[("PNG", "*.png")],
+                                   title='Choose Image to Attach')
+            if img_file:
+                self.skeleton.selected.set_image(img_file)
+
 
         def Remove_Image():
             pass
