@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 
 from Tkinter import Tk
-from tkFileDialog import askopenfile
+from tkFileDialog import askopenfilename
 
 import matrix
 import UIItems
@@ -67,10 +67,11 @@ class UI:
             # Hide the stupid Tk root window!
             root = Tk()
             root.withdraw()
-            img_file = askopenfile(filetypes=[("PNG", "*.png")],
-                                   title='Choose Image to Attach')
-            if img_file:
-                self.skeleton.add_image(img_file.name)
+            filename = askopenfilename(filetypes=[("PNG", "*.png")],
+                                       title='Choose Image to Attach')
+            print filename
+            if filename:
+                self.skeleton.add_image(filename)
 
 
         def Remove_Image():
