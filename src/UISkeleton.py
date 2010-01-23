@@ -152,8 +152,17 @@ class UISkeleton(UIItems.UIItemManager):
         if self.selected:
             if isinstance(self.selected, UIBone):
                 bone = self.selected.bone
+                if bone.image: bone.image.bone = None
                 bone.image = bones.Image(filename, bone)
                 self.build_UI_skeleton()
+
+    def remove_image(self):
+        if self.selected:
+            if isinstance(self.selected, UIBone):
+                if self.selected.bone.image:
+                    self.selected.bone.image.bone = None
+                    self.selected.bone.image = None
+                    self.build_UI_skeleton()
 
     def add_bone(self):
         if self.selected:

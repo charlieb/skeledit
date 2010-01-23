@@ -10,16 +10,16 @@
     - Mirror
 ** Menus
 *** Joint menu
-**** Add bone
+**** DONE Add bone
 *** Bone menu
-**** Attach image
-**** Delete
+**** DONE Attach image
+**** DONE Delete
 *** Background/Main menu
-**** Reset/New
-**** Recenter display
+**** DONE Reset/New
+**** DONE Recenter display
 **** Load
 **** Save
-**** Exit
+**** DONE Exit
 ** Tween Control
 *** Header: > || / |< / << / >> .. < / >
 **** Play/Pause
@@ -44,7 +44,7 @@
 **** DONE Make it implement __getitem__
 **** DONE multiply by scaler
 *** Matrix
-**** TODO Make it implement __getitem__
+**** DONE Make it implement __getitem__
 **** TODO transpose
 **** TODO inverse
 * Testing Checklist

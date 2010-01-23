@@ -75,7 +75,7 @@ class UI:
 
 
         def Remove_Image():
-            pass
+            self.skeleton.remove_image()
 
         names_and_callbacks = [
             ("New Bone", New_Bone),
