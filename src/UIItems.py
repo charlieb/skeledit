@@ -8,6 +8,11 @@ class UIItem:
         self.hilighted = False
         self.manager = manager
 
+    def draw(self, _):
+        return False
+    
+    def mouse_over(self, _):
+        return False
 
 class UIItemManager:
     def __init__(self):

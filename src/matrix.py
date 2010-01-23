@@ -78,6 +78,13 @@ class Matrix:
                         m1[2][2] * m2[2][2],]]
         return res
 
+    
+    def __getitem__(self, item):
+        return self.matrix[item]
+
+    def __setitem__(self, item, value):
+        self.matrix[item] = value
+
     def __add__(self, m2):
         pass
 

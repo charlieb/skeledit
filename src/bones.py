@@ -1,4 +1,4 @@
-from math import pi
+from math import pi, atan2
 
 import matrix
 
@@ -13,34 +13,37 @@ class Joint:
         self.bone_in = bone_in
         self.bones_out = []
         self.transform = matrix.Identity()
-        self.position = matrix.Vector(0, 0)        
 
     def __repr__(self):
-        return "Joint:\n\tPos: " + str(self.position) + \
+        return "Joint:\n\tPos: " + str(self.get_position()) + \
             "\n\tTransform:\n" + str(self.transform) + \
             "\n----------------------------"
 
-    def calc_position(self):
-        # You probably want to call calc_transform first!
-        self.position = self.origin * self.transform
-
     def calc_skeleton(self):
-        self.calc_position()
         for bone in self.bones_out:
             bone.calc_transform()
             bone.end.transform = bone.transform * self.transform
             bone.end.calc_skeleton()
 
-    def total_rotation(self):
-        if self.bone_in:
-            return self.bone_in.rotation + self.bone_in.start.total_rotation()
-        else:
-            return 0
+    def get_position(self):
+        return matrix.Vector(self.transform[0][2], self.transform[1][2])
+    
+    def get_rotation(self):
+        # Since we are only using rotates an translates
+        # all the info we need is in the matrix
+        return atan2(self.transform[1][0], self.transform[0][0])
         
 class Root(Joint):
     def __init__(self):
         Joint.__init__(self, None)
-        
+
+class Image():
+    def __init__(self, filename, bone):
+        self.filename = filename
+        self.bone = bone
+        self.rotation = 0
+        self.offset = matrix.Vector(0,0)
+                
 class Bone:
     # Bones hold transformation information from start to end
     # This is considered RELATIVE
@@ -52,6 +55,7 @@ class Bone:
         self.rotation = 0
         self.length = 1
         self.transform = matrix.Identity()
+        self.image = None
         
     def __repr__(self):
         return "Bone:\nlength: %f\nrotation: %f\n"%(self.length, 

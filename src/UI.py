@@ -70,7 +70,7 @@ class UI:
             img_file = askopenfile(filetypes=[("PNG", "*.png")],
                                    title='Choose Image to Attach')
             if img_file:
-                self.skeleton.selected.set_image(img_file)
+                self.skeleton.add_image(img_file.name)
 
 
         def Remove_Image():
