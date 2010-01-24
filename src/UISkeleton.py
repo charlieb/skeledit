@@ -29,15 +29,16 @@ class UIImage(UIGeometryItem):
         return max(size[0], size[1]) / 2
 
     def handle_pos(self):
-        rot = matrix.Rotation(self.image.bone.end.get_rotation())
+        rot = matrix.Rotation(self.image.bone.end.get_rotation() + \
+                              self.image.rotation)
         handle = matrix.Vector(self.image_radius(), 0)
         return (handle * rot) + self.image.bone.end.get_position()
 
-    def center(self):
-        return (self.image.bone.end.get_position() + self.handle_pos()) * 0.5
-  
     def draw(self, screen):
-        rot = self.image.bone.end.get_rotation() * (180.0 / pi)
+        rot = self.image.bone.end.get_rotation()
+        rot += self.image.rotation
+        rot *= (180.0 / pi)
+        
         rotated_image = pygame.transform.rotate(self.surface, rot)
         size = rotated_image.get_size()
         pos = self.image.bone.end.get_position()
@@ -50,37 +51,33 @@ class UIImage(UIGeometryItem):
         selector_size = 3
         selector_width = 0
         if self.hilighted:
-            handle_colour = (200,200,100)
+            handle_colour = (100,200,100)
             selector_size = 5
             selector_width = 1
         if self.selected:
             handle_colour = (100,200,100)
-            selector_colour = (255, 255, 0)
+            selector_colour = (0, 255, 0)
 
         start = self.to_screen_pos(pos)
-        center = self.to_screen_pos(self.center())
         end = self.to_screen_pos(self.handle_pos())
         
         pygame.draw.line(screen, handle_colour,
                          [int(start[0]), int(start[1])],
                          [int(end[0]), int(end[1])])
         pygame.draw.circle(screen, selector_colour,
-                           [int(center[0]), int(center[1])],
-                           selector_size, selector_width)
-        pygame.draw.circle(screen, selector_colour,
                            [int(end[0]), int(end[1])],
                            selector_size, selector_width)
         
 
     def mouse_over(self, p):
-        return False
-        size = self.surface.get_size()
-        radius = max(size[0], size[1]) / 2
+        return self.to_screen_pos(self.handle_pos()).distance(p) <= 5
 
-        pos = self.to_screen_pos(self.image.bone.end.get_position())
-        print pos.distance(p)
-        
-        return pos.distance(p) <= radius            
+    def drag(self, p):
+        joint = self.image.bone.end
+        self.image.rotation = \
+            joint.get_position().heading(self.from_screen_pos(p)) - \
+            joint.get_rotation() + pi / 2
+
         
 class UIBone(UIGeometryItem):
     def __init__(self, manager, bone):

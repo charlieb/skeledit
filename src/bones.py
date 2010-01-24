@@ -42,7 +42,6 @@ class Image():
         self.filename = filename
         self.bone = bone
         self.rotation = 0
-        self.offset = matrix.Vector(0,0)
                 
 class Bone:
     # Bones hold transformation information from start to end
