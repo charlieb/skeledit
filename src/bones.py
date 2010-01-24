@@ -42,6 +42,8 @@ class Image():
         self.filename = filename
         self.bone = bone
         self.rotation = 0
+        self.mirror_x = False
+        self.mirror_y = False
                 
 class Bone:
     # Bones hold transformation information from start to end

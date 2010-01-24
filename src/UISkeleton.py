@@ -23,6 +23,9 @@ class UIImage(UIGeometryItem):
         UIItems.UIItem.__init__(self, manager)
         self.image = image
         self.surface = pygame.image.load(self.image.filename)
+        self.surface = pygame.transform.flip(self.surface,
+                                             image.mirror_x,
+                                             image.mirror_y)
 
     def image_radius(self):
         size = self.surface.get_size()
@@ -195,19 +198,29 @@ class UISkeleton(UIItems.UIItemManager):
 
     def add_image(self, filename):
         if self.selected:
-            if isinstance(self.selected, UIBone):
+            if isinstance(self.selected, UIImage):
+                bone = self.selected.image.bone
+            elif isinstance(self.selected, UIBone):
                 bone = self.selected.bone
-                if bone.image: bone.image.bone = None
-                bone.image = bones.Image(filename, bone)
-                self.build_UI_skeleton()
+            else:
+                return
+            
+            if bone.image: bone.image.bone = None
+            bone.image = bones.Image(filename, bone)
+            self.build_UI_skeleton()
 
     def remove_image(self):
         if self.selected:
-            if isinstance(self.selected, UIBone):
-                if self.selected.bone.image:
-                    self.selected.bone.image.bone = None
-                    self.selected.bone.image = None
-                    self.build_UI_skeleton()
+            if isinstance(self.selected, UIImage):
+                bone = self.selected.image.bone
+            elif isinstance(self.selected, UIBone):
+                bone = self.selected.bone
+            else:
+                return
+
+            if bone.image: bone.image.bone = None
+            bone.image = None
+            self.build_UI_skeleton()
 
     def add_bone(self):
         if self.selected:

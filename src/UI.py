@@ -21,6 +21,7 @@ class UI:
         self.main_menu = self.make_main_menu()
         self.joint_menu = self.make_joint_menu()
         self.bone_menu = self.make_bone_menu()
+        self.image_menu = self.make_image_menu()
         self.menu = False
 
     def make_main_menu(self):
@@ -91,7 +92,6 @@ class UI:
             if filename:
                 self.skeleton.add_image(filename)
 
-
         def Remove_Image():
             self.skeleton.remove_image()
 
@@ -102,6 +102,40 @@ class UI:
             ("Remove Image", Remove_Image)]
 
         return UIItems.UIMenu(names_and_callbacks)
+
+    def make_image_menu(self):
+        
+        def Mirror_Vertically():
+            self.skeleton.selected.image.mirror_y = \
+                 not self.skeleton.selected.image.mirror_y
+            self.skeleton.build_UI_skeleton()
+            
+        def Mirror_Horizontally():
+            self.skeleton.selected.image.mirror_x = \
+                 not self.skeleton.selected.image.mirror_x 
+            self.skeleton.build_UI_skeleton()
+
+        def Change_Image():
+            # Hide the stupid Tk root window!
+            root = Tk()
+            root.withdraw()
+            filename = askopenfilename(filetypes=[("PNG", "*.png")],
+                                       title='Choose Image to Attach')
+            print filename
+            if filename:
+                self.skeleton.add_image(filename)
+
+        def Remove_Image():
+            self.skeleton.remove_image()
+
+        names_and_callbacks = [
+            ("Mirror Vertically", Mirror_Vertically),
+            ("Mirror Horizontally", Mirror_Horizontally),
+            ("Change Image", Change_Image),
+            ("Remove Image", Remove_Image)]
+
+        return UIItems.UIMenu(names_and_callbacks)
+
 
     def event(self, event):
         if event.type == KEYDOWN:
@@ -134,6 +168,9 @@ class UI:
                         self.menu = self.bone_menu
                     elif isinstance(self.skeleton.selected, UISkeleton.UIJoint):
                         self.menu = self.joint_menu
+                    elif isinstance(self.skeleton.selected, UISkeleton.UIImage):
+                        self.menu = self.image_menu
+
                 else:
                     self.menu = self.main_menu
                 self.menu.position = matrix.Vector(p[0], p[1])
