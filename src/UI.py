@@ -130,7 +130,7 @@ class UI:
         return self.run
     
     def update(self):
-        self.skeleton.get_root().joint.calc_skeleton()
+        self.skeleton.root.joint.calc_skeleton()
 
     def draw(self, screen):
         self.skeleton.draw(screen)

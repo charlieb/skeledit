@@ -24,15 +24,63 @@ class UIImage(UIGeometryItem):
         self.image = image
         self.surface = pygame.image.load(self.image.filename)
 
+    def image_radius(self):
+        size = self.surface.get_size()
+        return max(size[0], size[1]) / 2
+
+    def handle_pos(self):
+        rot = matrix.Rotation(self.image.bone.end.get_rotation())
+        handle = matrix.Vector(self.image_radius(), 0)
+        return (handle * rot) + self.image.bone.end.get_position()
+
+    def center(self):
+        return (self.image.bone.end.get_position() + self.handle_pos()) * 0.5
+  
     def draw(self, screen):
         rot = self.image.bone.end.get_rotation() * (180.0 / pi)
         rotated_image = pygame.transform.rotate(self.surface, rot)
         size = rotated_image.get_size()
-        trans = self.to_screen_pos(matrix.Vector(-size[0] / 2, size[1] / 2) + \
-                                   self.image.bone.end.get_position())
+        pos = self.image.bone.end.get_position()
+        trans = self.to_screen_pos(matrix.Vector(-size[0] / 2, size[1] / 2) + pos)
                 
         screen.blit(rotated_image, [int(trans[0]), int(trans[1])])
 
+        handle_colour = (150,150,150)
+        selector_colour = (0, 0, 255)
+        selector_size = 3
+        selector_width = 0
+        if self.hilighted:
+            handle_colour = (200,200,100)
+            selector_size = 5
+            selector_width = 1
+        if self.selected:
+            handle_colour = (100,200,100)
+            selector_colour = (255, 255, 0)
+
+        start = self.to_screen_pos(pos)
+        center = self.to_screen_pos(self.center())
+        end = self.to_screen_pos(self.handle_pos())
+        
+        pygame.draw.line(screen, handle_colour,
+                         [int(start[0]), int(start[1])],
+                         [int(end[0]), int(end[1])])
+        pygame.draw.circle(screen, selector_colour,
+                           [int(center[0]), int(center[1])],
+                           selector_size, selector_width)
+        pygame.draw.circle(screen, selector_colour,
+                           [int(end[0]), int(end[1])],
+                           selector_size, selector_width)
+        
+
+    def mouse_over(self, p):
+        return False
+        size = self.surface.get_size()
+        radius = max(size[0], size[1]) / 2
+
+        pos = self.to_screen_pos(self.image.bone.end.get_position())
+        print pos.distance(p)
+        
+        return pos.distance(p) <= radius            
         
 class UIBone(UIGeometryItem):
     def __init__(self, manager, bone):
@@ -118,35 +166,35 @@ class UIRoot(UIJoint):
 class UISkeleton(UIItems.UIItemManager):
     def __init__(self):
         UIItems.UIItemManager.__init__(self)
-        self.items = [UIRoot(self, bones.Root())]
+        self.root = UIRoot(self, bones.Root())
+        self.items = [self.root]
+
         self.build_UI_skeleton()
         
-    def get_root(self):
-        # The first joint is always the root
-        return self.items[0]
-
     def reset(self):
-        root_bones = copy(self.get_root().joint.bones_out)
+        root_bones = copy(self.root.joint.bones_out)
         for bone in root_bones:
             bone.delete()        
         self.build_UI_skeleton()
         
     def __build_UI_skeleton_r(self, joint, root = False):
         if root:
-            self.items.append(UIRoot(self, joint))
+            self.root = UIRoot(self, joint)
+            self.items.append(self.root)
         else:
             self.items.append(UIJoint(self, joint))
             
         for b in joint.bones_out:
             self.items.append(UIBone(self, b))
             if b.image:
-                self.items.append(UIImage(self, b.image))            
+                # Use insert to ensure that images are always
+                # drawn first = bones on top
+                self.items.insert(0, UIImage(self, b.image))
             self.__build_UI_skeleton_r(b.end)
 
     def build_UI_skeleton(self):
-        root = self.get_root().joint
         self.items = []
-        self.__build_UI_skeleton_r(root, True)
+        self.__build_UI_skeleton_r(self.root.joint, True)
 
     def add_image(self, filename):
         if self.selected:
