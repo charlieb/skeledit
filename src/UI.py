@@ -2,11 +2,12 @@ import pygame
 from pygame.locals import *
 
 from Tkinter import Tk
-from tkFileDialog import askopenfilename
+from tkFileDialog import askopenfilename, asksaveasfile, askopenfile
 
 import matrix
 import UIItems
 import UISkeleton
+import saveload
 
 class UI:
     def __init__(self, size = (640, 480)):
@@ -29,14 +30,31 @@ class UI:
         def Recenter():
             self.skeleton.position = matrix.Vector(self.size[0] / 2,
                                                    self.size[1] / 2)
+        def Save():
+            root = Tk()
+            root.withdraw()
+            f = asksaveasfile(filetypes=[("Skeledit Files", "*.ske")],
+                              title='Save Bones')
+            if f:
+                saveload.save(self.skeleton.root.joint, f)
+                file.close(f)
+        def Load():
+            root = Tk()
+            root.withdraw()
+            f = askopenfile(filetypes=[("Skeledit Files", "*.ske")],
+                            title='Load Bones')
+            if f:
+                self.skeleton.root.joint = saveload.load(f)
+                file.close(f)
+                self.skeleton.build_UI_skeleton()
         def Exit():
             self.run = False
             
         names_and_callbacks = [
             ("New", New),
             ("Recenter", Recenter),
-            ("Save", None),
-            ("Load", None),
+            ("Save", Save),
+            ("Load", Load),
             ("Exit", Exit)]
 
         return UIItems.UIMenu(names_and_callbacks)

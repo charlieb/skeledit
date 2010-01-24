@@ -4,7 +4,7 @@ import matrix
 
 def reload_bones_imports():
     reload(matrix)
-    
+
 class Joint:
     origin = matrix.Vector(0, 0)
     # Joints hold position and transformation relative to the root
