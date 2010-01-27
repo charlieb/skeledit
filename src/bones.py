@@ -75,6 +75,9 @@ class Bone:
             self.rotation -= bone.rotation
             bone = bone.start.bone_in
 
+    def center(self):
+        return (self.start.get_position() + self.end.get_position()) * 0.5
+
     def delete(self):
         self.end.bone_in = None
         for bone in self.end.bones_out:

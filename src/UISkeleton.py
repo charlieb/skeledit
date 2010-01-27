@@ -27,15 +27,11 @@ class UIImage(UIGeometryItem):
                                              image.mirror_x,
                                              image.mirror_y)
 
-    def image_radius(self):
-        size = self.surface.get_size()
-        return max(size[0], size[1]) / 2
-
     def handle_pos(self):
         rot = matrix.Rotation(self.image.bone.end.get_rotation() + \
                               self.image.rotation)
-        handle = matrix.Vector(self.image_radius(), 0)
-        return (handle * rot) + self.image.bone.end.get_position()
+        handle = matrix.Vector(self.image.bone.length / 2, 0)
+        return self.to_screen_pos((handle * rot) + self.image.bone.center())
 
     def draw(self, screen):
         rot = self.image.bone.end.get_rotation()
@@ -44,7 +40,7 @@ class UIImage(UIGeometryItem):
         
         rotated_image = pygame.transform.rotate(self.surface, rot)
         size = rotated_image.get_size()
-        pos = self.image.bone.end.get_position()
+        pos = self.image.bone.center()
         trans = self.to_screen_pos(matrix.Vector(-size[0] / 2, size[1] / 2) + pos)
                 
         screen.blit(rotated_image, [int(trans[0]), int(trans[1])])
@@ -62,7 +58,7 @@ class UIImage(UIGeometryItem):
             selector_colour = (0, 255, 0)
 
         start = self.to_screen_pos(pos)
-        end = self.to_screen_pos(self.handle_pos())
+        end = self.handle_pos()
         
         pygame.draw.line(screen, handle_colour,
                          [int(start[0]), int(start[1])],
@@ -71,15 +67,14 @@ class UIImage(UIGeometryItem):
                            [int(end[0]), int(end[1])],
                            selector_size, selector_width)
         
-
     def mouse_over(self, p):
-        return self.to_screen_pos(self.handle_pos()).distance(p) <= 5
+        return self.handle_pos().distance(p) <= 5
 
     def drag(self, p):
-        joint = self.image.bone.end
+        bone = self.image.bone
         self.image.rotation = \
-            joint.get_position().heading(self.from_screen_pos(p)) - \
-            joint.get_rotation() + pi / 2
+            bone.end.get_rotation() - pi / 2 - \
+            self.to_screen_pos(bone.center()).heading(p)
 
         
 class UIBone(UIGeometryItem):
@@ -106,17 +101,14 @@ class UIBone(UIGeometryItem):
         pygame.draw.line(screen, bone_colour, 
                          [int(start[0]), int(start[1])],
                          [int(end[0]), int(end[1])])
-        center = self.to_screen_pos(self.center())
+        center = self.to_screen_pos(self.bone.center())
         pygame.draw.circle(screen, selector_colour,
                            [int(center[0]), int(center[1])],
                            selector_size, selector_width)
 
-        
-    def center(self):
-        return (self.bone.start.get_position() + self.bone.end.get_position()) * 0.5
-    
+            
     def mouse_over(self, p):
-        return self.center().distance(self.from_screen_pos(p)) <= 5
+        return self.bone.center().distance(self.from_screen_pos(p)) <= 5
 
     def drag(self, p):
         self.bone.set_absolute_rotation(\

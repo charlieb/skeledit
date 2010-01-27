@@ -1,13 +1,13 @@
 * Requirements
+** Global
+*** Global zoom
 ** Images
 *** Load Dialog to show thumbnail previews
 *** Attach to UIBone at the distal end (as opposed to proximal)
 *** All transfomations are relative to the distal end of UIBone
 *** Will support the following transformations
-    - Scale
-    - Rotate
-    - Translate
-    - Mirror
+**** DONE Rotate
+**** DONE Mirror
 ** Menus
 *** Joint menu
 **** DONE Add bone
@@ -56,3 +56,5 @@
   6. Main menu new
   7. Main menu recenter
   8. Main menu exit
+* Misc:
+** http://imgur.com/YfAki

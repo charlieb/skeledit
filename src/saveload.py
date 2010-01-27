@@ -44,6 +44,9 @@ class Image():
     def __init__(self, image):
         self.filename = image.filename
         self.rotation = image.rotation
+        self.mirror_x = image.mirror_x
+        self.mirror_y = image.mirror_y
+
 
     def __repr__(self):
         return "Image: %s\n\t%f"%(self.filename, self.rotation)
@@ -52,6 +55,8 @@ class Image():
         # bone is a bones.Bone
         image = bones.Image(self.filename, bone)
         image.rotation = self.rotation
+        image.mirror_x = self.mirror_x
+        image.mirror_y = self.mirror_y
         return image
 
 def save(root, file):
