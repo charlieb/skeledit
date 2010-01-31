@@ -162,6 +162,13 @@ class UISkeleton(UIItems.UIItemManager):
         self.items = [self.root]
 
         self.build_UI_skeleton()
+
+    def set_bones(self, root):
+        root_bones = copy(self.root.joint.bones_out)
+        for bone in root_bones:
+            bone.delete()
+        self.root = UIRoot(self, root)
+        self.build_UI_skeleton()
         
     def reset(self):
         root_bones = copy(self.root.joint.bones_out)

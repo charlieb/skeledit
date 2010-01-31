@@ -202,7 +202,9 @@ class UI:
                     self.menu = self.main_menu
                 self.menu.position = matrix.Vector(p[0], p[1])
             elif event.button == 1:
-                self.animation.select(matrix.Vector(p[0], p[1]))
+                if self.animation.select(matrix.Vector(p[0], p[1])):
+                    key = self.animation.selected.keyframe
+                    self.skeleton.set_bones(key.root.to_root())
                 
         elif event.type == MOUSEBUTTONUP:
             p = pygame.mouse.get_pos()
