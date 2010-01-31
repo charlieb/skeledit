@@ -32,10 +32,13 @@ class Joint:
         # Since we are only using rotates an translates
         # all the info we need is in the matrix
         return atan2(self.transform[1][0], self.transform[0][0])
-        
+
 class Root(Joint):
     def __init__(self):
         Joint.__init__(self, None)
+
+    def set_bones(self, bare_root):
+        bare_root.set_joint(self)
 
 class Image():
     def __init__(self, filename, bone):

@@ -164,11 +164,7 @@ class UISkeleton(UIItems.UIItemManager):
         self.build_UI_skeleton()
 
     def set_bones(self, root):
-        root_bones = copy(self.root.joint.bones_out)
-        for bone in root_bones:
-            bone.delete()
-        self.root = UIRoot(self, root)
-        self.build_UI_skeleton()
+        self.root.joint.set_bones(root)
         
     def reset(self):
         root_bones = copy(self.root.joint.bones_out)
@@ -243,9 +239,3 @@ class UISkeleton(UIItems.UIItemManager):
 
             self.selected = None
             self.build_UI_skeleton()
-            
-    def drag(self, p):
-        if self.selected:
-            self.selected.drag(p)
-
-  

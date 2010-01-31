@@ -147,13 +147,16 @@ class UI:
 
     def make_keyframe_menu(self):
         def Set_Keyframe():
-            self.animation.set_keyframe(skeleton)
+            self.animation.set_keyframe(self.skeleton)
         def Delete_Keyframe():
             self.animation.delete_keyframe()
+        def Play_from_Here():
+            self.animation.play_from()
 
         names_and_callbacks = [
             ("Set Keyframe", Set_Keyframe),
-            ("Delete Keyframe", Delete_Keyframe)]
+            ("Delete Keyframe", Delete_Keyframe),
+            ("Play from Here", Play_from_Here)]
         
         return UIItems.UIMenu(names_and_callbacks)
         
@@ -204,7 +207,7 @@ class UI:
             elif event.button == 1:
                 if self.animation.select(matrix.Vector(p[0], p[1])):
                     key = self.animation.selected.keyframe
-                    self.skeleton.set_bones(key.root.to_root())
+                    self.skeleton.set_bones(key.root)
                 
         elif event.type == MOUSEBUTTONUP:
             p = pygame.mouse.get_pos()

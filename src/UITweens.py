@@ -7,7 +7,7 @@ import matrix
 
 class UIAnimation(UIItems.UIItemManager):
     height = 30
-    ignore_x_pixels = 20
+    ignore_x_pixels = 120
     def __init__(self):
         UIItems.UIItemManager.__init__(self)
 
@@ -20,7 +20,7 @@ class UIAnimation(UIItems.UIItemManager):
 
     def set_keyframe(self, skeleton):
         if self.selected:
-            self.seleted.keyframe.root = barebones.Root(skeleton.root.joint)
+            self.selected.keyframe.root = barebones.Root(skeleton.root.joint)
             
     def delete_keyframe(self):
         if self.selected:
@@ -35,6 +35,9 @@ class UIAnimation(UIItems.UIItemManager):
             return self.items[-1].keyframe.time
         else:
             return 0.0
+
+    def play_from(self):
+        pass
 
 class UIKeyframe(UIItems.UIItem):
     def __init__(self, manager, keyframe):
@@ -70,5 +73,7 @@ class UIKeyframe(UIItems.UIItem):
                p[1] < self.position[1] 
 
     def drag(self, p):
-        self.keyframe.time += 0.001 * (p[0] - self.position[0])
+        # You cannot drag the first keyframe. It should always be at zero
+        if self != self.manager.selected:
+            self.keyframe.time += 0.001 * (p[0] - self.position[0])
     
