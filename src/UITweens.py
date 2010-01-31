@@ -18,6 +18,18 @@ class UIAnimation(UIItems.UIItemManager):
         if self.items != []: key.keyframe.time += 3.0
         self.items.append(key)
 
+    def set_keyframe(self, skeleton):
+        if self.selected:
+            self.seleted.keyframe.root = barebones.Root(skeleton.root.joint)
+            
+    def delete_keyframe(self):
+        if self.selected:
+            print self.selected
+            print self.items
+            self.items.remove(self.selected)
+            print self.items
+            self.selected = None
+
     def total_time(self):
         if self.items != []:
             return self.items[-1].keyframe.time

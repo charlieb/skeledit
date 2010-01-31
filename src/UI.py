@@ -147,9 +147,9 @@ class UI:
 
     def make_keyframe_menu(self):
         def Set_Keyframe():
-            pass
+            self.animation.set_keyframe(skeleton)
         def Delete_Keyframe():
-            pass
+            self.animation.delete_keyframe()
 
         names_and_callbacks = [
             ("Set Keyframe", Set_Keyframe),

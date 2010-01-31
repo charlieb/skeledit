@@ -18,9 +18,6 @@ class Animation:
             tweens.append(Tween(keys[i].root, keys[i+1].root,
                                 keys[i+1].time - keys[i].time))
 
-    def add_keyframe(self, keyframe):
-        self.keyframes.append(keyframe)
-        
     def get_state_at(self, time):
         total_time = 0.0
         for tween in self.tweens:
