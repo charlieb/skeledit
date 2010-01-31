@@ -18,6 +18,7 @@ class UIItemManager:
     def __init__(self):
         self.items = []
         self.position = matrix.Vector(0, 0)
+        self.selected = None
 
     def draw(self, screen):
         for item in self.items:

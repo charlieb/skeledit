@@ -7,7 +7,9 @@ from tkFileDialog import askopenfilename, asksaveasfile, askopenfile
 import matrix
 import UIItems
 import UISkeleton
+import UITweens
 import saveload
+
 
 class UI:
     def __init__(self, size = (640, 480)):
@@ -22,7 +24,10 @@ class UI:
         self.joint_menu = self.make_joint_menu()
         self.bone_menu = self.make_bone_menu()
         self.image_menu = self.make_image_menu()
+        self.keyframe_menu = self.make_keyframe_menu()
         self.menu = False
+
+        self.animation = UITweens.UIAnimation()
 
     def make_main_menu(self):
                 
@@ -31,6 +36,8 @@ class UI:
         def Recenter():
             self.skeleton.position = matrix.Vector(self.size[0] / 2,
                                                    self.size[1] / 2)
+        def New_Keyframe():
+            self.animation.new_keyframe(self.skeleton)
         def Save():
             root = Tk()
             root.withdraw()
@@ -54,6 +61,7 @@ class UI:
         names_and_callbacks = [
             ("New", New),
             ("Recenter", Recenter),
+            ("New Keyframe", New_Keyframe),
             ("Save", Save),
             ("Load", Load),
             ("Exit", Exit)]
@@ -137,6 +145,19 @@ class UI:
         return UIItems.UIMenu(names_and_callbacks)
 
 
+    def make_keyframe_menu(self):
+        def Set_Keyframe():
+            pass
+        def Delete_Keyframe():
+            pass
+
+        names_and_callbacks = [
+            ("Set Keyframe", Set_Keyframe),
+            ("Delete Keyframe", Delete_Keyframe)]
+        
+        return UIItems.UIMenu(names_and_callbacks)
+        
+        
     def event(self, event):
         if event.type == KEYDOWN:
             if event.key == K_q:
@@ -153,17 +174,23 @@ class UI:
             # Left mouse button            
             if event.buttons[0]:
                 self.skeleton.drag(matrix.Vector(p[0], p[1]))
+                self.animation.drag(matrix.Vector(p[0], p[1]))
             elif self.menu and event.buttons[2]:
                 self.menu.hilight(matrix.Vector(p[0], p[1]))
+            elif self.animation.hilight(matrix.Vector(p[0], p[1])):
+                pass
             else:
                 self.skeleton.hilight(matrix.Vector(p[0], p[1]))
                 
         elif event.type == MOUSEBUTTONDOWN:
             p = pygame.mouse.get_pos()
             # Any mouse button will select/deselect the skeleton
+            self.animation.select(matrix.Vector(p[0], p[1]))
             self.skeleton.select(matrix.Vector(p[0], p[1]))
             if event.button == 3: # RMB
-                if self.skeleton.selected:
+                if self.animation.selected:
+                    self.menu = self.keyframe_menu
+                elif self.skeleton.selected:
                     if isinstance(self.skeleton.selected, UISkeleton.UIBone):
                         self.menu = self.bone_menu
                     elif isinstance(self.skeleton.selected, UISkeleton.UIJoint):
@@ -174,6 +201,8 @@ class UI:
                 else:
                     self.menu = self.main_menu
                 self.menu.position = matrix.Vector(p[0], p[1])
+            elif event.button == 1:
+                self.animation.select(matrix.Vector(p[0], p[1]))
                 
         elif event.type == MOUSEBUTTONUP:
             p = pygame.mouse.get_pos()
@@ -189,6 +218,7 @@ class UI:
 
     def draw(self, screen):
         self.skeleton.draw(screen)
+        self.animation.draw(screen)
         if self.menu: self.menu.draw(screen)
         
 
