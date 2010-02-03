@@ -7,6 +7,7 @@ class Keyframe:
         self.time = time
 
 class Animation:
+    min_keyframe_delta = 0.1
     def __init__(self):
         self.keyframes = []
         self.tweens = []

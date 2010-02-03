@@ -7,16 +7,17 @@ import matrix
 
 class UIAnimation(UIItems.UIItemManager):
     height = 30
-    ignore_x_pixels = 120
+    ignore_x_pixels = 200
     def __init__(self):
         UIItems.UIItemManager.__init__(self)
+        self.animation = tweens.Animation()
 
     def new_keyframe(self, skeleton):
-        key = UIKeyframe(self,
-                         tweens.Keyframe(barebones.Root(skeleton.root.joint),
-                                         self.total_time()))
-        if self.items != []: key.keyframe.time += 3.0
-        self.items.append(key)
+        t = 0.0 if self.items == [] else self.total_time() + 3.0
+        key = tweens.Keyframe(barebones.Root(skeleton.root.joint), t)
+            
+        self.animation.keyframes.append(key)
+        self.build_UI_animation()
 
     def set_keyframe(self, skeleton):
         if self.selected:
@@ -24,11 +25,14 @@ class UIAnimation(UIItems.UIItemManager):
             
     def delete_keyframe(self):
         if self.selected:
-            print self.selected
-            print self.items
-            self.items.remove(self.selected)
-            print self.items
+            self.animation.keyframes.remove(self.selected.keyframe)
+            self.build_UI_animation()
             self.selected = None
+
+    def build_UI_animation(self):
+        self.items = []
+        for key in self.animation.keyframes:
+            self.items.append(UIKeyframe(self, key))
 
     def total_time(self):
         if self.items != []:
@@ -37,7 +41,12 @@ class UIAnimation(UIItems.UIItemManager):
             return 0.0
 
     def play_from(self):
+        self.keyframe
         pass
+
+    def draw(self, screen):
+        UIItems.UIItemManager.draw(self, screen)        
+        
 
 class UIKeyframe(UIItems.UIItem):
     def __init__(self, manager, keyframe):
@@ -74,6 +83,28 @@ class UIKeyframe(UIItems.UIItem):
 
     def drag(self, p):
         # You cannot drag the first keyframe. It should always be at zero
-        if self != self.manager.selected:
-            self.keyframe.time += 0.001 * (p[0] - self.position[0])
+        keyn = self.manager.items.index(self)
+        if keyn == 0: return
+
+        new_time = self.keyframe.time + 0.001 * (p[0] - self.position[0])
+
+        # You also cannot drag one keyframe past another
+        min_time = self.manager.items[keyn - 1].keyframe.time + \
+                   tweens.Animation.min_keyframe_delta
+        if new_time < min_time:
+            self.keyframe.time = min_time
+            return
+
+        # the last keyframe is a special case for not being able to
+        # drag one keyframe past another
+        nkeys = len(self.manager.items)
+        if keyn != nkeys - 1:
+            max_time = self.manager.items[keyn + 1].keyframe.time - \
+                       tweens.Animation.min_keyframe_delta
+            if new_time > max_time:
+                self.keyframe.time = max_time
+                return
+                
     
+        # If we got here we can change the time
+        self.keyframe.time = new_time
