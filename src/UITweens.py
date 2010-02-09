@@ -13,7 +13,7 @@ class UIAnimation(UIItems.UIItemManager):
         self.animation = tweens.Animation()
 
     def new_keyframe(self, skeleton):
-        t = 0.0 if self.items == [] else self.total_time() + 3.0
+        t = 0.0 if self.items == [] else self.animation.total_time() + 3.0
         key = tweens.Keyframe(barebones.Root(skeleton.root.joint), t)
             
         self.animation.keyframes.append(key)
@@ -34,16 +34,15 @@ class UIAnimation(UIItems.UIItemManager):
         for key in self.animation.keyframes:
             self.items.append(UIKeyframe(self, key))
 
-    def total_time(self):
-        if self.items != []:
-            return self.items[-1].keyframe.time
-        else:
-            return 0.0
-
     def play_from(self):
-        self.keyframe
-        pass
+        self.animation.play_from(self.selected)
 
+    def set_skeleton(self):
+        if self.animation.playing:
+            return self.animation.get_state()
+        else:
+            return False
+        
     def draw(self, screen):
         UIItems.UIItemManager.draw(self, screen)        
         
@@ -57,9 +56,9 @@ class UIKeyframe(UIItems.UIItem):
 
     def draw(self, screen):
         x = self.manager.ignore_x_pixels / 2
-        if self.manager.total_time() > 0.0:
+        if self.manager.animation.total_time() > 0.0:
             x += (screen.get_width() - self.manager.ignore_x_pixels) * \
-                 self.keyframe.time / self.manager.total_time()
+                 self.keyframe.time / self.manager.animation.total_time()
             
         y = screen.get_height()
         # Recalculate position while we have the screen size

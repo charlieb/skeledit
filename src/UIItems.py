@@ -73,11 +73,12 @@ class UIButton(UIItem):
                p[1] < pos_plus_size[1]
 
 class UIMenu(UIItemManager):
-    def __init__(self, names_and_callbacks = ()):
+    def __init__(self, names_and_callbacks = (), pop_upwards = False):
         UIItemManager.__init__(self)
         self.position = matrix.Vector(0,0)
         self.font = pygame.font.Font(None, 14)
         self.item_size = matrix.Vector(0, 0)
+        self.pop_upwards = pop_upwards
 
         for name in names_and_callbacks:
             size = self.font.size(name[0])
@@ -112,7 +113,10 @@ class UIMenu(UIItemManager):
         bg_hl.blit(fg_hl, (0,0))
         # Calculate the position of the new item
         item = UIButton(self, bg, bg_hl, 
-                        matrix.Vector(0, len(self.items) * self.item_size[1]))
+                        matrix.Vector(0, -len(self.items) * self.item_size[1] \
+                                         if self.pop_upwards else \
+                                         len(self.items) * self.item_size[1]))
+                        #if self.pop_upwards: item.position[1] = -item.position[1]
         item.callback = callback
         self.items.append(item)
             

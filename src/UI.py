@@ -158,7 +158,8 @@ class UI:
             ("Delete Keyframe", Delete_Keyframe),
             ("Play from Here", Play_from_Here)]
         
-        return UIItems.UIMenu(names_and_callbacks)
+        return UIItems.UIMenu(names_and_callbacks,
+                              pop_upwards = True)
         
         
     def event(self, event):
@@ -219,6 +220,8 @@ class UI:
         return self.run
     
     def update(self):
+        new_root = self.animation.set_skeleton()
+        if new_root: self.skeleton.set_bones(new_root)
         self.skeleton.root.joint.calc_skeleton()
 
     def draw(self, screen):
