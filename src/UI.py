@@ -38,22 +38,43 @@ class UI:
                                                    self.size[1] / 2)
         def New_Keyframe():
             self.animation.new_keyframe(self.skeleton)
-        def Save():
+        def Save_Bones():
             root = Tk()
             root.withdraw()
-            f = asksaveasfile(filetypes=[("Skeledit Files", "*.ske")],
+            f = asksaveasfile(filetypes=[("Skeledit Bones", "*.ske")],
                               title='Save Bones')
             if f:
-                saveload.save(self.skeleton.root.joint, f)
+                saveload.save_bones(self.skeleton.root.joint, f)
                 file.close(f)
-        def Load():
+        def Load_Bones():
             root = Tk()
             root.withdraw()
-            f = askopenfile(filetypes=[("Skeledit Files", "*.ske")],
+            f = askopenfile(filetypes=[("Skeledit Bones", "*.ske")],
                             title='Load Bones')
             if f:
-                self.skeleton.root.joint = saveload.load(f)
+                self.skeleton.root.joint = saveload.load_bones(f)
                 file.close(f)
+                self.skeleton.build_UI_skeleton()
+        def Save_Animation():
+            root = Tk()
+            root.withdraw()
+            f = asksaveasfile(filetypes=[("Skeledit Animation", "*.ska")],
+                              title='Save Bones')
+            if f:
+                saveload.save_keyframes(self.animation.animation.keyframes, f)
+                file.close(f)
+        def Load_Animation():
+            root = Tk()
+            root.withdraw()
+            f = askopenfile(filetypes=[("Skeledit Animation", "*.ska")],
+                            title='Load Bones')
+            if f:
+                self.animation.animation.keyframes = saveload.load_keyframes(f)
+                file.close(f)
+                self.animation.build_UI_animation()
+                # Build the first keyframe so we have something to work with
+                self.skeleton.root.joint = \
+                     self.animation.animation.keyframes[0].root.to_root()
                 self.skeleton.build_UI_skeleton()
         def Exit():
             self.run = False
@@ -62,8 +83,11 @@ class UI:
             ("New", New),
             ("Recenter", Recenter),
             ("New Keyframe", New_Keyframe),
-            ("Save", Save),
-            ("Load", Load),
+            ("Save Bones", Save_Bones),
+            ("Load Bones", Load_Bones),
+            ("Save Animation", Save_Animation),
+            ("Load Animation", Load_Animation),
+
             ("Exit", Exit)]
 
         return UIItems.UIMenu(names_and_callbacks)
