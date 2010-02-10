@@ -32,7 +32,6 @@ class Animation:
         total_time = self.start_time
         for tween in self.tweens:
             if total_time + tween.total_time > time():
-                print "State"
                 return tween.get_state_at(time() - total_time)
             total_time += tween.total_time
         self.playing = False
@@ -40,7 +39,7 @@ class Animation:
     def play_from(self, keyframe):
         self.make_tweens()
         self.playing = True
-        self.start_time = time()
+        self.start_time = time() - keyframe.time
         
 class Tween():
     def __init__(self, start, end, time):

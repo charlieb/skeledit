@@ -35,7 +35,7 @@ class UIAnimation(UIItems.UIItemManager):
             self.items.append(UIKeyframe(self, key))
 
     def play_from(self):
-        self.animation.play_from(self.selected)
+        self.animation.play_from(self.selected.keyframe)
 
     def set_skeleton(self):
         if self.animation.playing:
